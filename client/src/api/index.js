@@ -1,19 +1,31 @@
 import axios from "axios";
 
+const baseURL = process.env.NODE_ENV === 'production' 
+  ? "https://fitness-tracker-backend-5z6i.onrender.com/api/"
+  : "http://localhost:8080/api/";
+
+console.log('API Base URL:', baseURL);
+console.log('Environment:', process.env.NODE_ENV);
+
 const API = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? "https://fitness-tracker-backend-5z6i.onrender.com/api/"
-    : "http://localhost:8080/api/",
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
-  withCredentials: true
+  withCredentials: false // Changed to false since we're not using cookies
 });
 
 // Add request interceptor for debugging
 API.interceptors.request.use((config) => {
+  // Add timestamp to avoid caching
+  const url = new URL(config.url, config.baseURL);
+  url.searchParams.append('_t', Date.now());
+  config.url = url.toString().replace(config.baseURL, '');
+
   console.log('API Request:', {
     url: config.url,
+    baseURL: config.baseURL,
     method: config.method,
     data: config.data,
     headers: config.headers,
@@ -27,23 +39,27 @@ API.interceptors.request.use((config) => {
 // Add response interceptor for debugging
 API.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response);
+    console.log('API Response:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers,
+    });
     return response;
   },
   (error) => {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       console.error('Response Error:', {
         data: error.response.data,
         status: error.response.status,
-        headers: error.response.headers
+        headers: error.response.headers,
+        config: error.config
       });
     } else if (error.request) {
-      // The request was made but no response was received
-      console.error('Request Error:', error.request);
+      console.error('Request Error:', {
+        request: error.request,
+        config: error.config
+      });
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error('Error:', error.message);
     }
     return Promise.reject(error);
@@ -53,7 +69,11 @@ API.interceptors.response.use(
 export const UserSignUp = async (data) => {
   try {
     console.log('Attempting signup with data:', data);
-    const response = await API.post("/user/signup", data);
+    const response = await API.post("/user/signup", data, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
     console.log('Signup successful:', response.data);
     return response;
   } catch (error) {
@@ -69,7 +89,11 @@ export const UserSignUp = async (data) => {
 export const UserSignIn = async (data) => {
   try {
     console.log('Attempting signin with data:', data);
-    const response = await API.post("/user/signin", data);
+    const response = await API.post("/user/signin", data, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
     console.log('Signin successful:', response.data);
     return response;
   } catch (error) {
@@ -84,15 +108,24 @@ export const UserSignIn = async (data) => {
 
 export const getDashboardDetails = async (token) =>
   API.get("/user/dashboard", {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
 
 export const getWorkouts = async (token, date) =>
   await API.get(`/user/workout${date}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
 
 export const addWorkout = async (token, data) =>
   await API.post(`/user/workout`, data, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });

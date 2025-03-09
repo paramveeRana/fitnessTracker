@@ -24,38 +24,60 @@ const Span = styled.div`
   color: ${({ theme }) => theme.text_secondary + 90};
 `;
 
+const ErrorMessage = styled.div`
+  color: red;
+  font-size: 14px;
+  margin-top: 8px;
+`;
+
 const SignUp = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const validateInputs = () => {
     if (!name || !email || !password) {
-      alert("Please fill in all fields");
+      setError("Please fill in all fields");
       return false;
     }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+    setError("");
     return true;
   };
 
   const handelSignUp = async () => {
-    setLoading(true);
-    setButtonDisabled(true);
-    if (validateInputs()) {
-      await UserSignUp({ name, email, password })
-        .then((res) => {
-          dispatch(loginSuccess(res.data));
-          alert("Account Created Success");
-          setLoading(false);
-          setButtonDisabled(false);
-        })
-        .catch((err) => {
-          alert(err.response.data.message);
-          setLoading(false);
-          setButtonDisabled(false);
-        });
+    try {
+      if (!validateInputs()) {
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
+      const response = await UserSignUp({ name, email, password });
+      console.log('SignUp Response:', response);
+      
+      if (response.data) {
+        dispatch(loginSuccess(response.data));
+        alert("Account Created Successfully!");
+      } else {
+        throw new Error("No response data received");
+      }
+    } catch (err) {
+      console.error('SignUp Error:', err);
+      setError(err.response?.data?.message || "Failed to create account. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -76,12 +98,15 @@ const SignUp = () => {
           placeholder="Enter your full name"
           value={name}
           handelChange={(e) => setName(e.target.value)}
+          disabled={loading}
         />
         <TextInput
           label="Email Address"
           placeholder="Enter your email address"
           value={email}
           handelChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          type="email"
         />
         <TextInput
           label="Password"
@@ -89,12 +114,14 @@ const SignUp = () => {
           password
           value={password}
           handelChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
         />
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <Button
-          text="SignUp"
+          text={loading ? "Creating Account..." : "SignUp"}
           onClick={handelSignUp}
           isLoading={loading}
-          isDisabled={buttonDisabled}
+          isDisabled={loading}
         />
       </div>
     </Container>
