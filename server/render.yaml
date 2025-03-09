@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: fitness-tracker-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URL
+        value: mongodb+srv://atharva:GpcrJwGmEHlzbF0E@cluster0.5gghydl.mongodb.net/chatbot?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT
+        value: jdchsncsdkfjhjysdhqwe79w3eye8397r3832hfdwe923043yi43oiu439pc
+      - key: COOKIE_SECRET
+        value: gbcidasvfwehoh2io3ujhsdvcikuwegf892390eifu29fyhbvckjsdsni
+      - key: PORT
+        value: 8080 
