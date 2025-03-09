@@ -7,6 +7,19 @@ import { handleError } from "./error.js";
 
 dotenv.config();
 
+// Log all MongoDB related events
+mongoose.connection.on('connected', () => {
+  console.log('MongoDB connected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+});
+
 const app = express();
 
 const allowedOrigins = [
@@ -48,19 +61,35 @@ app.use(handleError);
 app.get("/", async (req, res) => {
   res.status(200).json({
     message: "Fitness Tracker API is running",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
 const connectDB = async () => {
   try {
-    mongoose.set("strictQuery", true);
-    await mongoose.connect(process.env.MONGODB_URL);
+    console.log('Connecting to MongoDB...');
+    console.log('MongoDB URL:', process.env.MONGODB_URL ? 'URL is set' : 'URL is missing');
+    
+    await mongoose.connect(process.env.MONGODB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    });
+    
     console.log("Connected to MongoDB successfully");
+    
+    // Test the connection by running a simple query
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    console.log('Available collections:', collections.map(c => c.name));
+    
   } catch (error) {
     console.error("Failed to connect to MongoDB:", {
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      code: error.code,
+      codeName: error.codeName
     });
     process.exit(1);
   }
@@ -79,5 +108,16 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+process.on('SIGINT', async () => {
+  try {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed through app termination');
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during MongoDB disconnect:', err);
+    process.exit(1);
+  }
+});
 
 startServer();
