@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { PlayCircle, FitnessCenter, Timer, Restaurant } from "@mui/icons-material";
 
@@ -36,6 +36,7 @@ const TutorialSection = styled.div`
   flex-wrap: wrap;
   gap: 22px;
   padding: 0px 16px;
+  justify-content: center;
   @media (max-width: 600px) {
     gap: 12px;
   }
@@ -65,7 +66,7 @@ const TutorialCard = styled.div`
 const CardTitle = styled.div`
   font-weight: 600;
   font-size: 16px;
-  color: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.text_primary};
   @media (max-width: 600px) {
     font-size: 14px;
   }
@@ -74,6 +75,9 @@ const CardTitle = styled.div`
 const TutorialLink = styled.a`
   text-decoration: none;
   color: inherit;
+  display: block;
+  width: 100%;
+  max-width: 320px;
 `;
 
 const Description = styled.div`
@@ -157,30 +161,38 @@ const tutorials = [
 ];
 
 const Tutorials = () => {
+  useEffect(() => {
+    console.log("Tutorials component mounted");
+    console.log("Number of tutorials:", tutorials.length);
+  }, []);
+
   return (
     <Container>
       <Wrapper>
-        <Title>Tutorials</Title>
+        <Title>Tutorials & Workout Guides</Title>
         <TutorialSection>
-          {tutorials.map((tutorial, index) => (
-            <TutorialLink 
-              href={tutorial.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              key={index}
-            >
-              <TutorialCard>
-                <Tag>{tutorial.category}</Tag>
-                <CardTitle>{tutorial.title}</CardTitle>
-                <Description>{tutorial.description}</Description>
-                <IconContainer>
-                  {tutorial.icon}
-                  {tutorial.duration}
-                  <PlayCircle style={{ marginLeft: 'auto' }}/>
-                </IconContainer>
-              </TutorialCard>
-            </TutorialLink>
-          ))}
+          {tutorials.map((tutorial, index) => {
+            console.log("Rendering tutorial:", tutorial.title);
+            return (
+              <TutorialLink 
+                href={tutorial.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                key={index}
+              >
+                <TutorialCard>
+                  <Tag>{tutorial.category}</Tag>
+                  <CardTitle>{tutorial.title}</CardTitle>
+                  <Description>{tutorial.description}</Description>
+                  <IconContainer>
+                    {tutorial.icon}
+                    {tutorial.duration}
+                    <PlayCircle style={{ marginLeft: 'auto' }}/>
+                  </IconContainer>
+                </TutorialCard>
+              </TutorialLink>
+            );
+          })}
         </TutorialSection>
       </Wrapper>
     </Container>
