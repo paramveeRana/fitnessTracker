@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: process.env.NODE_ENV === 'production' 
-    ? "https://fitness-tracker-backend.onrender.com/api/"
+    ? "https://fitness-tracker-backend-5z6i.onrender.com/api/"
     : "http://localhost:8080/api/",
 });
 
