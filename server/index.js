@@ -37,6 +37,10 @@ app.use(cors({
   exposedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Body parsing middleware - place before routes
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true }));
+
 // Add request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -45,19 +49,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Pre-flight OPTIONS request handler
-app.options('*', cors());
-
-// Body parsing middleware
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.use("/api/user/", UserRoutes);
-
-// Error handler middleware
-app.use(handleError);
-
+// Health check endpoint
 app.get("/", async (req, res) => {
   res.status(200).json({
     message: "Fitness Tracker API is running",
@@ -65,6 +57,21 @@ app.get("/", async (req, res) => {
     mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
+
+// API routes
+app.use("/api/user", UserRoutes); // Removed trailing slash
+
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: `Cannot ${req.method} ${req.url}`,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Error handler middleware
+app.use(handleError);
 
 const connectDB = async () => {
   try {
@@ -74,8 +81,8 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGODB_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
     
     console.log("Connected to MongoDB successfully");

@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? "https://fitness-tracker-backend-5z6i.onrender.com/api/"
-  : "http://localhost:8080/api/";
+  ? "https://fitness-tracker-backend-5z6i.onrender.com/api"
+  : "http://localhost:8080/api";
 
 console.log('API Base URL:', baseURL);
 console.log('Environment:', process.env.NODE_ENV);
@@ -12,16 +12,14 @@ const API = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-  },
-  withCredentials: false // Changed to false since we're not using cookies
+  }
 });
 
 // Add request interceptor for debugging
 API.interceptors.request.use((config) => {
   // Add timestamp to avoid caching
-  const url = new URL(config.url, config.baseURL);
-  url.searchParams.append('_t', Date.now());
-  config.url = url.toString().replace(config.baseURL, '');
+  const timestamp = new Date().getTime();
+  config.url = `${config.url}${config.url.includes('?') ? '&' : '?'}_t=${timestamp}`;
 
   console.log('API Request:', {
     url: config.url,
@@ -69,11 +67,7 @@ API.interceptors.response.use(
 export const UserSignUp = async (data) => {
   try {
     console.log('Attempting signup with data:', data);
-    const response = await API.post("/user/signup", data, {
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
+    const response = await API.post("/user/signup", data);
     console.log('Signup successful:', response.data);
     return response;
   } catch (error) {
@@ -89,11 +83,7 @@ export const UserSignUp = async (data) => {
 export const UserSignIn = async (data) => {
   try {
     console.log('Attempting signin with data:', data);
-    const response = await API.post("/user/signin", data, {
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
+    const response = await API.post("/user/signin", data);
     console.log('Signin successful:', response.data);
     return response;
   } catch (error) {
