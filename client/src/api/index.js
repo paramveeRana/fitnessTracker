@@ -12,7 +12,9 @@ const API = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-  }
+    'Origin': window.location.origin
+  },
+  withCredentials: true
 });
 
 // Add request interceptor for debugging
@@ -20,6 +22,11 @@ API.interceptors.request.use((config) => {
   // Add timestamp to avoid caching
   const timestamp = new Date().getTime();
   config.url = `${config.url}${config.url.includes('?') ? '&' : '?'}_t=${timestamp}`;
+  
+  // Ensure the URL is properly formatted
+  if (config.url.includes('/user/signup')) {
+    console.log('Signup request URL:', config.url);
+  }
 
   console.log('API Request:', {
     url: config.url,
