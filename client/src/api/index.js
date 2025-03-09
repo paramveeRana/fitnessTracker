@@ -4,10 +4,53 @@ const API = axios.create({
   baseURL: process.env.NODE_ENV === 'production' 
     ? "https://fitness-tracker-backend-5z6i.onrender.com/api/"
     : "http://localhost:8080/api/",
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-export const UserSignUp = async (data) => API.post("/user/signup", data);
-export const UserSignIn = async (data) => API.post("/user/signin", data);
+// Add request interceptor for debugging
+API.interceptors.request.use((config) => {
+  console.log('API Request:', {
+    url: config.url,
+    method: config.method,
+    data: config.data,
+    headers: config.headers,
+  });
+  return config;
+});
+
+// Add response interceptor for debugging
+API.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response);
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error.response || error);
+    return Promise.reject(error);
+  }
+);
+
+export const UserSignUp = async (data) => {
+  try {
+    const response = await API.post("/user/signup", data);
+    return response;
+  } catch (error) {
+    console.error('SignUp Error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const UserSignIn = async (data) => {
+  try {
+    const response = await API.post("/user/signin", data);
+    return response;
+  } catch (error) {
+    console.error('SignIn Error:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 export const getDashboardDetails = async (token) =>
   API.get("/user/dashboard", {
