@@ -9,29 +9,85 @@ dotenv.config();
 
 export const UserRegister = async (req, res, next) => {
   try {
+    console.log('Received signup request:', {
+      body: req.body,
+      headers: req.headers
+    });
+
     const { email, password, name, img } = req.body;
 
+    // Validate required fields
+    if (!email || !password || !name) {
+      console.error('Missing required fields');
+      return next(createError(400, "Email, password, and name are required."));
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.error('Invalid email format:', email);
+      return next(createError(400, "Invalid email format."));
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      console.error('Password too short');
+      return next(createError(400, "Password must be at least 6 characters long."));
+    }
+
     // Check if the email is in use
+    console.log('Checking for existing user with email:', email);
     const existingUser = await User.findOne({ email }).exec();
     if (existingUser) {
+      console.error('Email already in use:', email);
       return next(createError(409, "Email is already in use."));
     }
 
+    // Hash password
+    console.log('Hashing password...');
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
 
+    // Create new user
+    console.log('Creating new user...');
     const user = new User({
       name,
       email,
       password: hashedPassword,
-      img,
+      img: img || null,
     });
+
+    // Save user to database
+    console.log('Saving user to database...');
     const createdUser = await user.save();
+    console.log('User created successfully:', createdUser._id);
+
+    // Generate JWT token
+    console.log('Generating JWT token...');
     const token = jwt.sign({ id: createdUser._id }, process.env.JWT, {
       expiresIn: "9999 years",
     });
-    return res.status(200).json({ token, user });
+
+    // Remove password from response
+    const userResponse = {
+      _id: createdUser._id,
+      name: createdUser.name,
+      email: createdUser.email,
+      img: createdUser.img,
+      createdAt: createdUser.createdAt,
+    };
+
+    console.log('Sending success response');
+    return res.status(200).json({ 
+      success: true,
+      token, 
+      user: userResponse 
+    });
   } catch (error) {
+    console.error('Registration error:', {
+      message: error.message,
+      stack: error.stack
+    });
     return next(error);
   }
 };
