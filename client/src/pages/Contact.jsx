@@ -107,7 +107,7 @@ const Contact = () => {
               Have questions about FitTrack? Want to collaborate or report an issue? Feel free to reach out through any of these channels:
             </InfoText>
             <ContactItem 
-              href="https://www.linkedin.com/in/atharva-barche-6b8585279/" 
+              href="https://www.linkedin.com/in/avani-ranka" 
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -115,23 +115,23 @@ const Contact = () => {
               Connect on LinkedIn
             </ContactItem>
             <ContactItem 
-              href="mailto:barcheatharva01@gmail.com"
+              href="mailto:avanirankaa@gmail.com"
             >
               <Email />
-              barcheatharva01@gmail.com
+              avanirankaa@gmail.com
             </ContactItem>
           </ContactCard>
 
           <ContactCard>
             <CardTitle>About Developer</CardTitle>
             <InfoText>
-              FitTrack is developed and maintained by Atharva Barche, a passionate developer focused on creating intuitive fitness solutions that help people achieve their health goals.
+              FitTrack is developed and maintained by Avani Ranka, a passionate developer focused on creating intuitive fitness solutions that help people achieve their health goals.
             </InfoText>
             <ContactItem 
               as="div"
             >
               <Person />
-              Atharva Barche
+              Avani Ranka
             </ContactItem>
           </ContactCard>
         </ContactSection>
@@ -140,4 +140,4 @@ const Contact = () => {
   );
 };
 
-export default Contact; 
+export default Contact;
